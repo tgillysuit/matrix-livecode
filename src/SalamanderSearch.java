@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class SalamanderSearch {
     public static void main(String[] args) {
@@ -42,66 +43,130 @@ public class SalamanderSearch {
      * @param enclosure
      * @return whether the salamander can reach the food
      */
+
+     // In-class Variation of canReach()
+    // public static boolean canReach(char[][] enclosure) {
+    //     int[] start = salamanderLocation(enclosure);
+    //     boolean[][] visited = new boolean[enclosure.length][enclosure[0].length];
+    //     return canReach(enclosure, start, visited);
+    // }
+
+    // // In-class Helper Method for canReach()
+    // public static boolean canReach(char[][] enclosure, int[] current, boolean[][] visited) {
+    //     int curR = current[0];
+    //     int curC = current[1];
+
+    //     if (visited[curR][curC]) return false;
+    //     if (enclosure[curR][curC] == 'f') return true;
+
+    //     visited[curR][curC] = true;
+
+    //     List<int[]> moves = possibleMoves(enclosure, current);
+    //     for(int[] move : moves) {
+    //         if(canReach(enclosure, move, visited)) return true;
+    //     }
+    //     return false;
+    // }
+
+    // My Version of canReach()
     public static boolean canReach(char[][] enclosure) {
-        int[] start = salamanderLocation(enclosure);
-        boolean[][] visited = new boolean[enclosure.length][enclosure[0].length];
-        return canReach(enclosure, start, visited);
-    }
+        int[] start = salamanderLocation(enclosure); // starting position of the salamander
+        int rows = enclosure.length;
+        int cols = enclosure[0].length;
+        
+        boolean[][] visited = new boolean[rows][cols]; // tracking the positions that the salamander has visited
+        Stack<int[]> stack = new Stack<>(); // Stack is being used for DFS
+        stack.push(start); // Pushing the starting position of the salamander onto the stack
 
-    // Helper Method
-    public static boolean canReach(char[][] enclosure, int[] current, boolean[][] visited) {
-        int curR = current[0];
-        int curC = current[1];
+        while(!stack.isEmpty()) {
+            int[] current = stack.pop(); // the pointer of the current position of the salamander
+            int r = current[0];
+            int c = current[1];
 
-        if (visited[curR][curC]) return false;
-        if (enclosure[curR][curC] == 'f') return true;
+            if(visited[r][c]) continue; // if the salamander has visited that position, we'll continue
 
-        visited[curR][curC] = true;
+            if(enclosure[r][c] == 'f') return true; // the salamander has found the food
 
-        List<int[]> moves = possibleMoves(enclosure, current);
-        for(int[] move : moves) {
-            if(canReach(enclosure, move, visited)) return true;
+            visited[r][c] = true; // marking the current cell true
+
+            // searching through the possible moves
+            for(int[] move : possibleMoves(enclosure, current)) {
+                if(!visited[move[0]][move[1]]) {
+                    stack.push(move); // adding the unvisited moves or "neighbors" to the stack
+                }
+            }
         }
         return false;
     }
 
-    // Helper Method
+
+    // // In-class Variation of possibleMoves() Helper Method - Where the salamander has possible moves
+    // public static List<int[]> possibleMoves(char[][] enclosure, int[] current) {
+    //     int curR = current[0]; // row
+    //     int curC = current[1]; // column
+
+    //     List<int[]> moves = new ArrayList<>();
+
+    //     // UP
+    //     int newR = curR - 1; 
+    //     int newC = curC;
+    //     if(newR >= 0 && enclosure[newR][newC] != 'W') {
+    //         moves.add(new int[]{newR, newC});
+    //     } 
+
+    //     // DOWN
+    //     newR = curR + 1;
+    //     newC = curC;
+    //     if(newR < enclosure.length && enclosure[newR][newC] != 'W') {
+    //         moves.add(new int[]{newR, newC});
+    //     }
+
+    //     // LEFT
+    //     newR = curR;
+    //     newC = curC - 1;
+    //     if(newC >= 0 && enclosure[newR][newC] != 'W') {
+    //         moves.add(new int[]{newR, newC});
+    //     }
+
+    //     // RIGHT
+    //     newR = curR;
+    //     newC = curC + 1;
+    //     if(newC < enclosure[0].length && enclosure[newR][newC] != 'W') {
+    //         moves.add(new int[]{newR, newC});
+    //     }
+
+    //     return moves;
+    // }
+
+    // My Version of possibleMoves()
     public static List<int[]> possibleMoves(char[][] enclosure, int[] current) {
-        int curR = current[0]; // row
-        int curC = current[1]; // column
+        int curR = current[0];
+        int curC = current[1];
+
+        int[][] directions = {
+            {-1, 0}, // UP
+            {1, 0}, // DOWN
+            {0, -1}, // LEFT
+            {0, 1} // RIGHT
+        };
 
         List<int[]> moves = new ArrayList<>();
 
-        // UP
-        int newR = curR - 1; 
-        int newC = curC;
-        if(newR >= 0 && enclosure[newR][newC] != 'W') {
-            moves.add(new int[]{newR, newC});
-        } 
+        for(int[] direction : directions) {
+            int newR = curR + direction[0]; // new row after move
+            int newC = curC + direction[1]; // new column after move
 
-        // DOWN
-        newR = curR + 1;
-        newC = curC;
-        if(newR < enclosure.length && enclosure[newR][newC] != 'W') {
-            moves.add(new int[]{newR, newC});
+            // Checking if the salamander is inside bounds and if the salamander is...
+            if (newR >= 0 && newR < enclosure.length &&
+                newC >= 0 && newC < enclosure[0].length &&
+                enclosure[newR][newC] != 'W') {
+                    moves.add(new int[]{newR, newC}); // ...we'll add that move to the list
+            }
         }
-
-        // LEFT
-        newR = curR;
-        newC = curC - 1;
-        if(newC >= 0 && enclosure[newR][newC] != 'W') {
-            moves.add(new int[]{newR, newC});
-        }
-
-        // RIGHT
-        newR = curR;
-        newC = curC + 1;
-        if(newC < enclosure[0].length && enclosure[newR][newC] != 'W') {
-            moves.add(new int[]{newR, newC});
-        }
-
         return moves;
     }
+
+
 
     // Helper Method - That holds a {row, column} as an index
     public static int[] salamanderLocation(char[][] enclosure) {
